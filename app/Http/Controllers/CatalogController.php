@@ -10,7 +10,7 @@ class CatalogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Product::with('category');
+        $query = Product::with(['category', 'images']);
 
         if ($request->filled('category')) {
             $query->whereHas('category', function ($q) use ($request) {
@@ -30,9 +30,9 @@ class CatalogController extends Controller
 
     public function show(string $slug)
     {
-        $product = Product::with('category')->where('slug', $slug)->firstOrFail();
+        $product = Product::with(['category', 'images'])->where('slug', $slug)->firstOrFail();
 
-        $relatedProducts = Product::with('category')
+        $relatedProducts = Product::with(['category', 'images'])
             ->where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->take(4)
@@ -41,3 +41,4 @@ class CatalogController extends Controller
         return view('catalog.show', compact('product', 'relatedProducts'));
     }
 }
+

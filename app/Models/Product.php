@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Product extends Model
@@ -29,6 +30,11 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
     public function scopeFeatured($query)
     {
         return $query->where('is_featured', true);
@@ -41,6 +47,35 @@ class Product extends Model
         }
 
         return 'https://placehold.co/600x400/111111/f59e0b?text=' . urlencode($this->name);
+    }
+
+    /**
+     * Get all image URLs for this product (main image + additional images).
+     * Returns an array of URL strings.
+     */
+    public function getAllImageUrlsAttribute(): array
+    {
+        $urls = [];
+
+        // Main image first
+        if ($this->image_path && file_exists(public_path('storage/' . $this->image_path))) {
+            $urls[] = asset('storage/' . $this->image_path);
+        }
+
+        // Additional images from product_images table
+        foreach ($this->images as $image) {
+            $url = $image->image_url;
+            if (!in_array($url, $urls)) {
+                $urls[] = $url;
+            }
+        }
+
+        // Fallback if no images at all
+        if (empty($urls)) {
+            $urls[] = 'https://placehold.co/600x400/111111/f59e0b?text=' . urlencode($this->name);
+        }
+
+        return $urls;
     }
 
     public function getFormattedPriceAttribute(): string

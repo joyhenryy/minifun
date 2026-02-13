@@ -65,18 +65,56 @@
         {{-- Product Grid --}}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @forelse($products as $product)
-                <a href="{{ route('catalog.show', $product->slug) }}" class="group block bg-white rounded-2xl border border-gray-100 hover:border-gray-200 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/5 hover:-translate-y-1">
-                    {{-- Image --}}
-                    <div class="relative aspect-square bg-gray-50 overflow-hidden">
-                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy">
+                @php $imageUrls = $product->all_image_urls; @endphp
+                <div class="group block bg-white rounded-2xl border border-gray-100 hover:border-gray-200 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/5 hover:-translate-y-1">
+                    {{-- Image Carousel --}}
+                    <div class="relative aspect-square bg-gray-50 overflow-hidden product-carousel" data-product-id="{{ $product->id }}">
+                        @foreach($imageUrls as $index => $url)
+                            <img
+                                src="{{ $url }}"
+                                alt="{{ $product->name }} - Image {{ $index + 1 }}"
+                                class="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out {{ $index === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0' }}"
+                                data-slide-index="{{ $index }}"
+                                loading="lazy"
+                            >
+                        @endforeach
+
+                        {{-- Navigation Arrows (only show if multiple images) --}}
+                        @if(count($imageUrls) > 1)
+                            <button class="carousel-prev absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:bg-white hover:text-black shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110" onclick="event.preventDefault(); event.stopPropagation(); carouselNav({{ $product->id }}, -1)">
+                                <i class="fas fa-chevron-left text-xs"></i>
+                            </button>
+                            <button class="carousel-next absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:bg-white hover:text-black shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110" onclick="event.preventDefault(); event.stopPropagation(); carouselNav({{ $product->id }}, 1)">
+                                <i class="fas fa-chevron-right text-xs"></i>
+                            </button>
+
+                            {{-- Pagination Dots --}}
+                            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/30 backdrop-blur-sm">
+                                @foreach($imageUrls as $dotIndex => $url)
+                                    <button
+                                        class="carousel-dot w-1.5 h-1.5 rounded-full transition-all duration-300 {{ $dotIndex === 0 ? 'bg-white w-4' : 'bg-white/50 hover:bg-white/75' }}"
+                                        data-dot-index="{{ $dotIndex }}"
+                                        onclick="event.preventDefault(); event.stopPropagation(); carouselGoTo({{ $product->id }}, {{ $dotIndex }})"
+                                    ></button>
+                                @endforeach
+                            </div>
+
+                            {{-- Image Counter Badge --}}
+                            <div class="absolute top-3 right-3 z-20 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-sm text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <i class="fas fa-images mr-1"></i>
+                                <span class="carousel-counter">1</span>/{{ count($imageUrls) }}
+                            </div>
+                        @endif
+
                         @if($product->is_featured)
-                            <div class="absolute top-3 left-3 px-2.5 py-1 bg-amber-500 text-black text-xs font-bold rounded-lg">
+                            <div class="absolute top-3 left-3 z-20 px-2.5 py-1 bg-amber-500 text-black text-xs font-bold rounded-lg">
                                 <i class="fas fa-star mr-1"></i> Featured
                             </div>
                         @endif
                     </div>
-                    {{-- Info --}}
-                    <div class="p-5">
+
+                    {{-- Info (wrapped in link) --}}
+                    <a href="{{ route('catalog.show', $product->slug) }}" class="block p-5">
                         <div class="text-xs font-medium text-amber-600 mb-1">{{ $product->category->name ?? 'Uncategorized' }}</div>
                         <h3 class="font-bold text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-2">{{ $product->name }}</h3>
                         <p class="mt-1.5 text-xs text-gray-400 line-clamp-2">{{ $product->description }}</p>
@@ -86,8 +124,8 @@
                                 <i class="fas fa-arrow-right"></i>
                             </span>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
             @empty
                 <div class="col-span-full text-center py-20">
                     <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
@@ -110,5 +148,97 @@
         @endif
     </div>
 </section>
+
+{{-- Carousel JavaScript --}}
+<script>
+    // Track current slide index for each product carousel
+    const carouselState = {};
+
+    function getCarouselEl(productId) {
+        return document.querySelector(`.product-carousel[data-product-id="${productId}"]`);
+    }
+
+    function getSlideCount(productId) {
+        const el = getCarouselEl(productId);
+        if (!el) return 0;
+        return el.querySelectorAll('img[data-slide-index]').length;
+    }
+
+    function carouselGoTo(productId, index) {
+        const el = getCarouselEl(productId);
+        if (!el) return;
+
+        const slides = el.querySelectorAll('img[data-slide-index]');
+        const dots = el.querySelectorAll('.carousel-dot');
+        const counter = el.querySelector('.carousel-counter');
+        const total = slides.length;
+
+        if (total === 0) return;
+
+        // Wrap around
+        if (index < 0) index = total - 1;
+        if (index >= total) index = 0;
+
+        carouselState[productId] = index;
+
+        // Update slides
+        slides.forEach((slide, i) => {
+            if (i === index) {
+                slide.classList.remove('opacity-0', 'z-0');
+                slide.classList.add('opacity-100', 'z-10');
+            } else {
+                slide.classList.remove('opacity-100', 'z-10');
+                slide.classList.add('opacity-0', 'z-0');
+            }
+        });
+
+        // Update dots
+        dots.forEach((dot, i) => {
+            if (i === index) {
+                dot.classList.remove('bg-white/50', 'hover:bg-white/75');
+                dot.classList.add('bg-white', 'w-4');
+            } else {
+                dot.classList.remove('bg-white', 'w-4');
+                dot.classList.add('bg-white/50', 'hover:bg-white/75');
+                dot.style.width = '';
+            }
+        });
+
+        // Update counter
+        if (counter) {
+            counter.textContent = index + 1;
+        }
+    }
+
+    function carouselNav(productId, direction) {
+        const current = carouselState[productId] || 0;
+        carouselGoTo(productId, current + direction);
+    }
+
+    // Initialize all carousels
+    document.querySelectorAll('.product-carousel').forEach(el => {
+        const productId = el.dataset.productId;
+        carouselState[productId] = 0;
+    });
+
+    // Optional: swipe support for mobile
+    document.querySelectorAll('.product-carousel').forEach(el => {
+        let startX = 0;
+        let endX = 0;
+        const productId = el.dataset.productId;
+
+        el.addEventListener('touchstart', (e) => {
+            startX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        el.addEventListener('touchend', (e) => {
+            endX = e.changedTouches[0].screenX;
+            const diff = startX - endX;
+            if (Math.abs(diff) > 50) {
+                carouselNav(productId, diff > 0 ? 1 : -1);
+            }
+        }, { passive: true });
+    });
+</script>
 
 @endsection

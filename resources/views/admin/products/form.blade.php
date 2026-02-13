@@ -58,20 +58,78 @@
                 <textarea name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none text-sm transition-all duration-300 resize-none" placeholder="Describe your product...">{{ old('description', $product->description ?? '') }}</textarea>
             </div>
 
-            {{-- Image Upload --}}
+            {{-- Main Image Upload --}}
             <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Product Image</label>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Main Product Image</label>
                 @if(isset($product) && $product->image_path)
                     <div class="mb-3 flex items-center gap-3">
                         <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-20 h-20 rounded-xl object-cover border border-gray-200">
-                        <span class="text-xs text-gray-400">Current image</span>
+                        <span class="text-xs text-gray-400">Current main image</span>
                     </div>
                 @endif
                 <div class="relative">
                     <input type="file" name="image" accept="image/jpeg,image/png,image/jpg,image/webp" id="image-input" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none text-sm transition-all duration-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-600 hover:file:bg-amber-100">
                 </div>
-                <p class="text-xs text-gray-400 mt-1">JPG, PNG or WebP. Max 2MB.</p>
+                <p class="text-xs text-gray-400 mt-1">JPG, PNG or WebP. Max 2MB. This will be the primary cover image.</p>
             </div>
+
+            {{-- Additional Images Upload --}}
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    Additional Images <span class="text-gray-400 normal-case">(Gallery / Carousel)</span>
+                </label>
+
+                @if(isset($product) && $product->images->count() > 0)
+                    <div class="mb-4">
+                        <p class="text-xs text-gray-500 mb-2">Current additional images (check to delete):</p>
+                        <div class="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                            @foreach($product->images as $img)
+                                <label class="relative group cursor-pointer">
+                                    <input type="checkbox" name="delete_images[]" value="{{ $img->id }}" class="absolute top-2 right-2 z-10 w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-500/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <img src="{{ $img->image_url }}" alt="Additional image" class="w-full aspect-square rounded-lg object-cover border border-gray-200 group-hover:border-red-300 group-hover:opacity-75 transition-all">
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span class="text-[10px] font-semibold text-red-500 bg-white/90 px-2 py-0.5 rounded-md">Remove</span>
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div id="additional-images-container" class="space-y-3">
+                    {{-- Default first input --}}
+                    <div class="flex items-center gap-2">
+                        <input type="file" name="additional_images[]" accept="image/jpeg,image/png,image/jpg,image/webp" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800 transition-colors">
+                        <button type="button" class="hidden text-red-500 hover:text-red-700" onclick="removeInput(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" onclick="addInfoImageInput()" class="mt-3 inline-flex items-center gap-2 text-xs font-bold text-amber-600 hover:text-amber-700">
+                    <i class="fas fa-plus-circle"></i> Add Another Image
+                </button>
+                <p class="text-xs text-gray-400 mt-2">Add as many images as you like for the gallery (Max 2MB each).</p>
+            </div>
+
+            <script>
+                function addInfoImageInput() {
+                    const container = document.getElementById('additional-images-container');
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center gap-2';
+                    div.innerHTML = `
+                        <input type="file" name="additional_images[]" accept="image/jpeg,image/png,image/jpg,image/webp" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800 transition-colors">
+                        <button type="button" class="text-red-500 hover:text-red-700 p-2" onclick="removeInput(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                    container.appendChild(div);
+                }
+
+                function removeInput(btn) {
+                    btn.closest('div').remove();
+                }
+            </script>
 
             {{-- Shopee URL --}}
             <div>

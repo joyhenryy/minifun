@@ -5,6 +5,8 @@
 
 @section('content')
 
+@php $imageUrls = $product->all_image_urls; @endphp
+
 {{-- Breadcrumb --}}
 <div class="bg-gray-50 border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -25,14 +27,55 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
 
-            {{-- Product Image --}}
-            <div class="relative">
-                <div class="aspect-square rounded-3xl overflow-hidden bg-gray-50 border border-gray-100">
-                    <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700">
+            {{-- Product Image Gallery --}}
+            <div class="relative" id="product-gallery">
+                {{-- Main Image Display --}}
+                <div class="relative aspect-square rounded-3xl overflow-hidden bg-gray-50 border border-gray-100 group">
+                    @foreach($imageUrls as $index => $url)
+                        <img
+                            src="{{ $url }}"
+                            alt="{{ $product->name }} - Image {{ $index + 1 }}"
+                            class="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out cursor-zoom-in {{ $index === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0' }}"
+                            data-gallery-index="{{ $index }}"
+                            onclick="openLightbox({{ $index }})"
+                        >
+                    @endforeach
+
+                    {{-- Navigation Arrows --}}
+                    @if(count($imageUrls) > 1)
+                        <button class="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:bg-white hover:text-black shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110" onclick="galleryNav(-1)">
+                            <i class="fas fa-chevron-left text-sm"></i>
+                        </button>
+                        <button class="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:bg-white hover:text-black shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110" onclick="galleryNav(1)">
+                            <i class="fas fa-chevron-right text-sm"></i>
+                        </button>
+
+                        {{-- Image Counter --}}
+                        <div class="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-black/40 backdrop-blur-sm text-white text-xs font-semibold">
+                            <i class="fas fa-images mr-1"></i>
+                            <span id="gallery-counter">1</span>/{{ count($imageUrls) }}
+                        </div>
+                    @endif
+
+                    @if($product->is_featured)
+                        <div class="absolute top-4 left-4 z-20 px-3 py-1.5 bg-amber-500 text-black text-xs font-bold rounded-xl shadow-lg shadow-amber-500/25">
+                            <i class="fas fa-star mr-1"></i> Featured
+                        </div>
+                    @endif
                 </div>
-                @if($product->is_featured)
-                    <div class="absolute top-4 left-4 px-3 py-1.5 bg-amber-500 text-black text-xs font-bold rounded-xl shadow-lg shadow-amber-500/25">
-                        <i class="fas fa-star mr-1"></i> Featured
+
+                {{-- Thumbnail Strip --}}
+                @if(count($imageUrls) > 1)
+                    <div class="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide" id="thumbnail-strip">
+                        @foreach($imageUrls as $index => $url)
+                            <button
+                                class="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 hover:scale-105 {{ $index === 0 ? 'border-amber-500 ring-2 ring-amber-500/20' : 'border-gray-200 hover:border-gray-300' }}"
+                                data-thumb-index="{{ $index }}"
+                                onclick="galleryGoTo({{ $index }})"
+                            >
+                                <img src="{{ $url }}" alt="Thumbnail {{ $index + 1 }}" class="w-full h-full object-cover">
+                            </button>
+                        @endforeach
                     </div>
                 @endif
             </div>
@@ -72,6 +115,12 @@
                         <div class="text-xs text-gray-400 font-medium">Status</div>
                         <div class="text-sm font-semibold text-green-600 mt-0.5"><i class="fas fa-circle text-[6px] mr-1"></i> Available</div>
                     </div>
+                    @if(count($imageUrls) > 1)
+                    <div class="px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 col-span-2">
+                        <div class="text-xs text-gray-400 font-medium">Photos</div>
+                        <div class="text-sm font-semibold text-gray-900 mt-0.5"><i class="fas fa-images text-amber-500 mr-1"></i> {{ count($imageUrls) }} images available</div>
+                    </div>
+                    @endif
                 </div>
 
                 {{-- CTA Buttons --}}
@@ -98,6 +147,45 @@
     </div>
 </section>
 
+{{-- Lightbox Modal --}}
+<div id="lightbox" class="fixed inset-0 z-50 hidden bg-black/95 backdrop-blur-lg" onclick="closeLightbox(event)">
+    <button class="absolute top-6 right-6 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all duration-300 hover:scale-110" onclick="closeLightbox(event, true)">
+        <i class="fas fa-times text-lg"></i>
+    </button>
+
+    <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-12">
+        @foreach($imageUrls as $index => $url)
+            <img
+                src="{{ $url }}"
+                alt="{{ $product->name }} - Image {{ $index + 1 }}"
+                class="max-w-full max-h-full object-contain transition-all duration-500 ease-in-out absolute {{ $index === 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-95' }}"
+                data-lightbox-index="{{ $index }}"
+                onclick="event.stopPropagation()"
+            >
+        @endforeach
+    </div>
+
+    @if(count($imageUrls) > 1)
+        <button class="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 z-50 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:scale-110" onclick="event.stopPropagation(); lightboxNav(-1)">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-50 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all duration-300 hover:scale-110" onclick="event.stopPropagation(); lightboxNav(1)">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+
+        {{-- Lightbox Bottom Counter --}}
+        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3">
+            @foreach($imageUrls as $index => $url)
+                <button
+                    class="lightbox-dot w-2.5 h-2.5 rounded-full transition-all duration-300 {{ $index === 0 ? 'bg-white scale-125' : 'bg-white/40 hover:bg-white/60' }}"
+                    data-lightbox-dot="{{ $index }}"
+                    onclick="event.stopPropagation(); lightboxGoTo({{ $index }})"
+                ></button>
+            @endforeach
+        </div>
+    @endif
+</div>
+
 {{-- Related Products --}}
 @if($relatedProducts->isNotEmpty())
 <section class="py-16 lg:py-24 bg-gray-50">
@@ -114,11 +202,36 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             @foreach($relatedProducts as $related)
-                <a href="{{ route('catalog.show', $related->slug) }}" class="group block bg-white rounded-2xl border border-gray-100 hover:border-gray-200 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/5 hover:-translate-y-1">
-                    <div class="relative aspect-square bg-gray-50 overflow-hidden">
-                        <img src="{{ $related->image_url }}" alt="{{ $related->name }}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy">
+                @php $relatedImageUrls = $related->all_image_urls; @endphp
+                <div class="group block bg-white rounded-2xl border border-gray-100 hover:border-gray-200 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/5 hover:-translate-y-1">
+                    <div class="relative aspect-square bg-gray-50 overflow-hidden product-carousel" data-product-id="related-{{ $related->id }}">
+                        @foreach($relatedImageUrls as $index => $url)
+                            <img
+                                src="{{ $url }}"
+                                alt="{{ $related->name }} - Image {{ $index + 1 }}"
+                                class="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out {{ $index === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0' }}"
+                                data-slide-index="{{ $index }}"
+                                loading="lazy"
+                            >
+                        @endforeach
+
+                        @if(count($relatedImageUrls) > 1)
+                            <button class="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:bg-white hover:text-black shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300" onclick="event.preventDefault(); event.stopPropagation(); carouselNav('related-{{ $related->id }}', -1)">
+                                <i class="fas fa-chevron-left text-[10px]"></i>
+                            </button>
+                            <button class="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 hover:bg-white hover:text-black shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300" onclick="event.preventDefault(); event.stopPropagation(); carouselNav('related-{{ $related->id }}', 1)">
+                                <i class="fas fa-chevron-right text-[10px]"></i>
+                            </button>
+
+                            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 px-2 py-1 rounded-full bg-black/30 backdrop-blur-sm">
+                                @foreach($relatedImageUrls as $dotIndex => $url)
+                                    <button class="carousel-dot w-1.5 h-1.5 rounded-full transition-all duration-300 {{ $dotIndex === 0 ? 'bg-white w-3' : 'bg-white/50' }}" data-dot-index="{{ $dotIndex }}" onclick="event.preventDefault(); event.stopPropagation(); carouselGoTo('related-{{ $related->id }}', {{ $dotIndex }})"></button>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
-                    <div class="p-5">
+
+                    <a href="{{ route('catalog.show', $related->slug) }}" class="block p-5">
                         <div class="text-xs font-medium text-amber-600 mb-1">{{ $related->category->name }}</div>
                         <h3 class="font-bold text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-2">{{ $related->name }}</h3>
                         <div class="mt-3 flex items-center justify-between">
@@ -127,12 +240,200 @@
                                 <i class="fas fa-arrow-right"></i>
                             </span>
                         </div>
-                    </div>
-                </a>
+                    </a>
+                </div>
             @endforeach
         </div>
     </div>
 </section>
 @endif
+
+{{-- Gallery & Lightbox JavaScript --}}
+<script>
+    // ── Product Detail Gallery ──────────────────────────
+    let currentGalleryIndex = 0;
+    const totalGalleryImages = {{ count($imageUrls) }};
+
+    function galleryGoTo(index) {
+        if (index < 0) index = totalGalleryImages - 1;
+        if (index >= totalGalleryImages) index = 0;
+        currentGalleryIndex = index;
+
+        // Update main images
+        document.querySelectorAll('[data-gallery-index]').forEach((img, i) => {
+            if (i === index) {
+                img.classList.remove('opacity-0', 'z-0');
+                img.classList.add('opacity-100', 'z-10');
+            } else {
+                img.classList.remove('opacity-100', 'z-10');
+                img.classList.add('opacity-0', 'z-0');
+            }
+        });
+
+        // Update thumbnails
+        document.querySelectorAll('[data-thumb-index]').forEach((thumb, i) => {
+            if (i === index) {
+                thumb.classList.remove('border-gray-200', 'hover:border-gray-300');
+                thumb.classList.add('border-amber-500', 'ring-2', 'ring-amber-500/20');
+            } else {
+                thumb.classList.remove('border-amber-500', 'ring-2', 'ring-amber-500/20');
+                thumb.classList.add('border-gray-200', 'hover:border-gray-300');
+            }
+        });
+
+        // Update counter
+        const counter = document.getElementById('gallery-counter');
+        if (counter) counter.textContent = index + 1;
+
+        // Scroll thumbnail into view
+        const thumbStrip = document.getElementById('thumbnail-strip');
+        const activeThumb = document.querySelector(`[data-thumb-index="${index}"]`);
+        if (thumbStrip && activeThumb) {
+            activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+    }
+
+    function galleryNav(direction) {
+        galleryGoTo(currentGalleryIndex + direction);
+    }
+
+    // ── Lightbox ────────────────────────────────────────
+    let currentLightboxIndex = 0;
+
+    function openLightbox(index) {
+        const lightbox = document.getElementById('lightbox');
+        lightbox.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        lightboxGoTo(index);
+    }
+
+    function closeLightbox(event, force = false) {
+        if (force || event.target.id === 'lightbox') {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function lightboxGoTo(index) {
+        if (index < 0) index = totalGalleryImages - 1;
+        if (index >= totalGalleryImages) index = 0;
+        currentLightboxIndex = index;
+
+        document.querySelectorAll('[data-lightbox-index]').forEach((img, i) => {
+            if (i === index) {
+                img.classList.remove('opacity-0', 'scale-95');
+                img.classList.add('opacity-100', 'scale-100');
+            } else {
+                img.classList.remove('opacity-100', 'scale-100');
+                img.classList.add('opacity-0', 'scale-95');
+            }
+        });
+
+        document.querySelectorAll('[data-lightbox-dot]').forEach((dot, i) => {
+            if (i === index) {
+                dot.classList.remove('bg-white/40', 'hover:bg-white/60');
+                dot.classList.add('bg-white', 'scale-125');
+            } else {
+                dot.classList.remove('bg-white', 'scale-125');
+                dot.classList.add('bg-white/40', 'hover:bg-white/60');
+            }
+        });
+    }
+
+    function lightboxNav(direction) {
+        lightboxGoTo(currentLightboxIndex + direction);
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        const lightbox = document.getElementById('lightbox');
+        if (!lightbox.classList.contains('hidden')) {
+            if (e.key === 'ArrowLeft') lightboxNav(-1);
+            if (e.key === 'ArrowRight') lightboxNav(1);
+            if (e.key === 'Escape') { lightbox.classList.add('hidden'); document.body.style.overflow = ''; }
+        }
+    });
+
+    // ── Related Products Carousel ───────────────────────
+    const carouselState = {};
+
+    function getCarouselEl(productId) {
+        return document.querySelector(`.product-carousel[data-product-id="${productId}"]`);
+    }
+
+    function carouselGoTo(productId, index) {
+        const el = getCarouselEl(productId);
+        if (!el) return;
+
+        const slides = el.querySelectorAll('img[data-slide-index]');
+        const dots = el.querySelectorAll('.carousel-dot');
+        const total = slides.length;
+        if (total === 0) return;
+
+        if (index < 0) index = total - 1;
+        if (index >= total) index = 0;
+        carouselState[productId] = index;
+
+        slides.forEach((slide, i) => {
+            if (i === index) {
+                slide.classList.remove('opacity-0', 'z-0');
+                slide.classList.add('opacity-100', 'z-10');
+            } else {
+                slide.classList.remove('opacity-100', 'z-10');
+                slide.classList.add('opacity-0', 'z-0');
+            }
+        });
+
+        dots.forEach((dot, i) => {
+            if (i === index) {
+                dot.classList.remove('bg-white/50');
+                dot.classList.add('bg-white', 'w-3');
+            } else {
+                dot.classList.remove('bg-white', 'w-3');
+                dot.classList.add('bg-white/50');
+                dot.style.width = '';
+            }
+        });
+    }
+
+    function carouselNav(productId, direction) {
+        const current = carouselState[productId] || 0;
+        carouselGoTo(productId, current + direction);
+    }
+
+    // Initialize related carousels
+    document.querySelectorAll('.product-carousel').forEach(el => {
+        carouselState[el.dataset.productId] = 0;
+    });
+
+    // Touch/swipe support
+    document.querySelectorAll('.product-carousel').forEach(el => {
+        let startX = 0;
+        const productId = el.dataset.productId;
+
+        el.addEventListener('touchstart', (e) => { startX = e.changedTouches[0].screenX; }, { passive: true });
+        el.addEventListener('touchend', (e) => {
+            const diff = startX - e.changedTouches[0].screenX;
+            if (Math.abs(diff) > 50) carouselNav(productId, diff > 0 ? 1 : -1);
+        }, { passive: true });
+    });
+
+    // Gallery swipe support
+    const gallery = document.querySelector('#product-gallery .group');
+    if (gallery) {
+        let startX = 0;
+        gallery.addEventListener('touchstart', (e) => { startX = e.changedTouches[0].screenX; }, { passive: true });
+        gallery.addEventListener('touchend', (e) => {
+            const diff = startX - e.changedTouches[0].screenX;
+            if (Math.abs(diff) > 50) galleryNav(diff > 0 ? 1 : -1);
+        }, { passive: true });
+    }
+</script>
+
+<style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 
 @endsection
