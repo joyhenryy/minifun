@@ -112,6 +112,67 @@
                 <p class="text-xs text-gray-400 mt-2">Add as many images as you like for the gallery (Max 2MB each).</p>
             </div>
 
+            {{-- Product Variants --}}
+            <div class="pt-6 border-t border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-900">Product Variations</label>
+                        <p class="text-xs text-gray-500 mt-1">Add options like color or size affecting the price.</p>
+                    </div>
+                    <button type="button" onclick="addVariantInput()" class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 text-amber-600 text-xs font-bold rounded-lg hover:bg-amber-100 transition-colors">
+                        <i class="fas fa-plus"></i> Add Variant
+                    </button>
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                    {{-- Header --}}
+                    <div class="grid grid-cols-12 gap-4 px-4 py-2 bg-gray-100 border-b border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        <div class="col-span-3">Type</div>
+                        <div class="col-span-3">Name</div>
+                        <div class="col-span-2">Price Diff (Rp)</div>
+                        <div class="col-span-3">Image</div>
+                        <div class="col-span-1 text-center">Action</div>
+                    </div>
+
+                    <div id="variants-container" class="divide-y divide-gray-200">
+                        @if(isset($product) && $product->variants->count() > 0)
+                            @foreach($product->variants as $index => $variant)
+                                <div class="grid grid-cols-12 gap-4 px-4 py-3 items-center group hover:bg-white transition-colors">
+                                    <input type="hidden" name="variants[{{ $index }}][id]" value="{{ $variant->id }}">
+                                    <div class="col-span-3">
+                                        <input type="text" name="variants[{{ $index }}][type]" value="{{ $variant->type }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Warna">
+                                    </div>
+                                    <div class="col-span-3">
+                                        <input type="text" name="variants[{{ $index }}][name]" value="{{ $variant->name }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Merah">
+                                    </div>
+                                    <div class="col-span-2">
+                                        <input type="number" name="variants[{{ $index }}][price_adjustment]" value="{{ $variant->price_adjustment }}" step="100" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="0">
+                                    </div>
+                                    <div class="col-span-3">
+                                        @if($variant->image_path)
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <img src="{{ $variant->image_url }}" alt="Variant" class="w-8 h-8 rounded object-cover border border-gray-200">
+                                                <span class="text-[10px] text-gray-400">Current</span>
+                                            </div>
+                                        @endif
+                                        <input type="file" name="variants[{{ $index }}][image]" accept="image/jpeg,image/png,image/jpg" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                                    </div>
+                                    <div class="col-span-1 text-center">
+                                        <button type="button" class="text-gray-400 hover:text-red-500 transition-colors p-2" onclick="removeVariant(this)">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div id="no-variants-placeholder" class="px-4 py-8 text-center text-gray-400 text-sm italic">
+                                No variations added yet. Click "Add Variant" to start.
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
             <script>
                 function addInfoImageInput() {
                     const container = document.getElementById('additional-images-container');
@@ -128,6 +189,45 @@
 
                 function removeInput(btn) {
                     btn.closest('div').remove();
+                }
+
+                // Variants Script
+                let variantIndex = {{ isset($product) ? $product->variants->count() : 0 }};
+                
+                function addVariantInput() {
+                    const container = document.getElementById('variants-container');
+                    const placeholder = document.getElementById('no-variants-placeholder');
+                    if (placeholder) {
+                        placeholder.remove();
+                    }
+
+                    const div = document.createElement('div');
+                    div.className = 'grid grid-cols-12 gap-4 px-4 py-3 items-center group hover:bg-white transition-colors border-t border-gray-200';
+                    div.innerHTML = `
+                        <div class="col-span-3">
+                            <input type="text" name="variants[${variantIndex}][type]" value="Warna" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Warna">
+                        </div>
+                        <div class="col-span-3">
+                            <input type="text" name="variants[${variantIndex}][name]" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Merah">
+                        </div>
+                        <div class="col-span-2">
+                            <input type="number" name="variants[${variantIndex}][price_adjustment]" value="0" step="100" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="0">
+                        </div>
+                        <div class="col-span-3">
+                            <input type="file" name="variants[${variantIndex}][image]" accept="image/jpeg,image/png,image/jpg" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                        </div>
+                        <div class="col-span-1 text-center">
+                            <button type="button" class="text-gray-400 hover:text-red-500 transition-colors p-2" onclick="removeVariant(this)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                    variantIndex++;
+                }
+
+                function removeVariant(btn) {
+                    btn.closest('.grid').remove();
                 }
             </script>
 

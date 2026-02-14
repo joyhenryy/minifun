@@ -123,6 +123,53 @@
                     @endif
                 </div>
 
+                {{-- Variants Display --}}
+                @if($product->variants->isNotEmpty())
+                    <div class="mt-6">
+                        <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Available Variations</h3>
+                        <div class="space-y-4">
+                            @foreach($product->variants->groupBy('type') as $type => $variants)
+                                <div>
+                                    <span class="text-xs font-medium text-gray-500 mb-2 block">{{ $type }}</span>
+                                    <div class="flex flex-wrap gap-3">
+                                        @foreach($variants as $variant)
+                                            <button 
+                                                type="button"
+                                                class="variant-btn group relative flex items-center gap-3 px-3 py-2 rounded-lg border-2 border-gray-200 bg-white hover:border-amber-500 transition-all min-w-[120px]"
+                                                data-type="{{ $type }}"
+                                                data-price-diff="{{ $variant->price_adjustment }}"
+                                                data-image="{{ $variant->image_url }}"
+                                                onclick="selectVariant(this)"
+                                            >
+                                                {{-- Thumbnail --}}
+                                                @if($variant->image_path)
+                                                    <img src="{{ $variant->image_url }}" alt="{{ $variant->name }}" class="w-10 h-10 rounded-md object-cover bg-gray-50 border border-gray-100">
+                                                @endif
+
+                                                {{-- Text Info --}}
+                                                <div class="flex flex-col items-start {{ !$variant->image_path ? 'w-full text-center items-center' : '' }}">
+                                                    <span class="text-xs font-bold text-gray-900 group-hover:text-amber-600 uppercase">{{ $variant->name }}</span>
+                                                    @if($variant->price_adjustment != 0)
+                                                        <span class="text-[10px] font-medium {{ $variant->price_adjustment > 0 ? 'text-green-600' : 'text-red-500' }}">
+                                                            {{ $variant->price_adjustment > 0 ? '+' : '' }}Rp{{ number_format($variant->price_adjustment / 1000, 0) }}k
+                                                        </span>
+                                                    @endif
+                                                </div>
+
+                                                {{-- Active Checkmark (Triangle) --}}
+                                                <div class="active-check hidden absolute bottom-0 right-0">
+                                                    <div class="w-0 h-0 border-b-[24px] border-b-amber-500 border-l-[24px] border-l-transparent rounded-br-lg"></div>
+                                                    <i class="fas fa-check text-[8px] text-white absolute bottom-[3px] right-[3px]"></i>
+                                                </div>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 {{-- CTA Buttons --}}
                 <div class="mt-8 flex flex-col sm:flex-row gap-3">
                     @if($product->shopee_url)
@@ -428,6 +475,70 @@
             const diff = startX - e.changedTouches[0].screenX;
             if (Math.abs(diff) > 50) galleryNav(diff > 0 ? 1 : -1);
         }, { passive: true });
+    }
+</script>
+
+<script>
+    // ── Variant Selection ──────────────────────────────
+    const basePrice = {{ $product->price }};
+    const formattedBasePrice = "{{ $product->formatted_price }}";
+
+    function selectVariant(btn) {
+        // Toggle active state for this type
+        const type = btn.dataset.type;
+        const siblings = btn.parentElement.querySelectorAll('.variant-btn');
+        const isActive = btn.classList.contains('border-amber-500');
+
+        // Reset siblings
+        siblings.forEach(sib => {
+            sib.classList.remove('border-amber-500', 'bg-amber-50');
+            sib.classList.add('border-gray-200', 'bg-white');
+            
+            // Hide checkmark
+            const check = sib.querySelector('.active-check');
+            if(check) check.classList.add('hidden');
+        });
+
+        if (!isActive) {
+            // Activate clicked
+            btn.classList.remove('border-gray-200', 'bg-white');
+            btn.classList.add('border-amber-500', 'bg-amber-50');
+            
+            // Show checkmark
+            const check = btn.querySelector('.active-check');
+            if(check) check.classList.remove('hidden');
+
+            // Update Main Image if variant has one
+            const imageUrl = btn.dataset.image;
+            if (imageUrl) {
+                // We'll update the first image in the gallery
+                const mainImg = document.querySelector('img[data-gallery-index="0"]');
+                if (mainImg) {
+                    // Preload first to avoid flicker
+                    const temp = new Image();
+                    temp.src = imageUrl;
+                    temp.onload = () => {
+                        mainImg.src = imageUrl;
+                        galleryGoTo(0); // Ensure first image is shown
+                    }
+                }
+            }
+        } 
+        
+        // Recalculate Total Price
+        let totalAdjustment = 0;
+        // Check all active buttons across different variant types
+        document.querySelectorAll('.variant-btn.border-amber-500').forEach(activeBtn => {
+            totalAdjustment += parseFloat(activeBtn.dataset.priceDiff || 0);
+        });
+
+        const newPrice = basePrice + totalAdjustment;
+        
+        // Format price (Rp)
+        const priceElement = document.querySelector('.text-3xl.font-extrabold');
+        if (priceElement) {
+            priceElement.textContent = 'Rp ' + new Intl.NumberFormat('id-ID').format(newPrice);
+        }
     }
 </script>
 

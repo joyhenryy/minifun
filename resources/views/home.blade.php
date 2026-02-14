@@ -157,13 +157,13 @@
             <h2 class="mt-2 text-3xl sm:text-4xl font-black text-black tracking-tight">Shop Categories</h2>
         </div>
 
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div class="flex flex-wrap justify-center gap-4">
             @php
                 $icons = ['fas fa-car-side', 'fa-solid fa-clone', 'fa-solid fa-box-open', 'fas fa-cog', 'fas fa-crown'];
                 $colors = ['from-red-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-green-500 to-emerald-500', 'from-purple-500 to-pink-500', 'from-amber-500 to-yellow-500'];
             @endphp
             @foreach($categories as $index => $category)
-                <a href="{{ route('catalog.index', ['category' => $category->slug]) }}" class="group relative flex flex-col items-center justify-center p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 hover:border-transparent overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
+                <a href="{{ route('catalog.index', ['category' => $category->slug]) }}" class="group relative flex flex-col items-center justify-center p-6 lg:p-8 rounded-2xl bg-white border border-gray-100 hover:border-transparent overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-1 w-[calc(50%-0.5rem)] sm:w-[calc(33.333%-0.67rem)] lg:w-[calc(20%-0.8rem)]">
                     <div class="absolute inset-0 bg-gradient-to-br {{ $colors[$index % count($colors)] }} opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div class="relative z-10 flex flex-col items-center">
                         <div class="w-14 h-14 rounded-2xl bg-gray-100 group-hover:bg-white/20 flex items-center justify-center mb-4 transition-all duration-300">

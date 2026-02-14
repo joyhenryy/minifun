@@ -9,6 +9,8 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -36,6 +38,11 @@ class ProductController extends Controller
             'shopee_url' => 'nullable|url',
             'is_featured' => 'boolean',
             'category_id' => 'required|exists:categories,id',
+            'variants' => 'nullable|array',
+            'variants.*.type' => 'required_with:variants|string|max:50',
+            'variants.*.name' => 'required_with:variants|string|max:100',
+            'variants.*.price_adjustment' => 'nullable|numeric',
+            'variants.*.image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
@@ -57,6 +64,26 @@ class ProductController extends Controller
                         'image_path' => $path,
                         'sort_order' => $index + 1,
                     ]);
+                }
+            }
+        }
+
+        // Store variants
+        if ($request->has('variants')) {
+            foreach ($request->variants as $index => $variantData) {
+                if (!empty($variantData['type']) && !empty($variantData['name'])) {
+                    $newVariant = [
+                        'product_id' => $product->id,
+                        'type' => $variantData['type'],
+                        'name' => $variantData['name'],
+                        'price_adjustment' => $variantData['price_adjustment'] ?? 0,
+                    ];
+
+                    if ($request->hasFile("variants.$index.image")) {
+                        $newVariant['image_path'] = $request->file("variants.$index.image")->store('variants', 'public');
+                    }
+
+                    $product->variants()->create($newVariant);
                 }
             }
         }
@@ -84,6 +111,11 @@ class ProductController extends Controller
             'shopee_url' => 'nullable|url',
             'is_featured' => 'boolean',
             'category_id' => 'required|exists:categories,id',
+            'variants' => 'nullable|array',
+            'variants.*.type' => 'required_with:variants|string|max:50',
+            'variants.*.name' => 'required_with:variants|string|max:100',
+            'variants.*.price_adjustment' => 'nullable|numeric',
+            'variants.*.image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
         ]);
 
         $validated['slug'] = Str::slug($validated['name']);
@@ -122,6 +154,63 @@ class ProductController extends Controller
                 }
             }
         }
+
+        // Sync Variants
+        DB::transaction(function () use ($product, $request) {
+            $inputVariants = $request->input('variants', []);
+            Log::info('Updating product variants', ['product_id' => $product->id, 'input_variants' => $inputVariants, 'files' => $request->allFiles()]);
+
+            $submittedVariantIds = [];
+
+            // 1. Collect IDs that are being kept
+            foreach ($inputVariants as $data) {
+                if (isset($data['id'])) {
+                    $submittedVariantIds[] = $data['id'];
+                }
+            }
+
+            // 2. Delete non-submitted variants (this handles deletions)
+            $variantsToDelete = $product->variants()->whereNotIn('id', $submittedVariantIds)->get();
+            foreach ($variantsToDelete as $v) {
+                if ($v->image_path) {
+                    Storage::disk('public')->delete($v->image_path);
+                }
+                $v->delete();
+            }
+
+            // 3. Update or Create variants
+            foreach ($inputVariants as $index => $variantData) {
+                // Basic validation check
+                if (empty($variantData['type']) || empty($variantData['name'])) {
+                    continue;
+                }
+
+                $attributes = [
+                    'product_id' => $product->id,
+                    'type' => $variantData['type'],
+                    'name' => $variantData['name'],
+                    'price_adjustment' => $variantData['price_adjustment'] ?? 0,
+                ];
+
+                // Handle Image Upload
+                if ($request->hasFile("variants.{$index}.image")) {
+                    Log::info("Uploading image for variant index $index");
+                    // If updating an existing variant, clean up old image
+                    if (!empty($variantData['id'])) {
+                        $oldVariant = $product->variants()->find($variantData['id']);
+                        if ($oldVariant && $oldVariant->image_path) {
+                            Storage::disk('public')->delete($oldVariant->image_path);
+                        }
+                    }
+                    $attributes['image_path'] = $request->file("variants.{$index}.image")->store('variants', 'public');
+                }
+
+                $product->variants()->updateOrCreate(
+                    ['id' => $variantData['id'] ?? null],
+                    $attributes
+                );
+            }
+        });
 
         unset($validated['image'], $validated['additional_images']);
         $product->update($validated);
