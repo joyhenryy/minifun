@@ -84,15 +84,19 @@
                     <ul class="space-y-3">
                         <li class="flex items-center gap-3 text-gray-400 text-sm">
                             <i class="fab fa-whatsapp text-green-500"></i>
-                            <span>WhatsApp Us</span>
+                            <span>+62 812 3456 7890</span>
                         </li>
                         <li class="flex items-center gap-3 text-gray-400 text-sm">
-                            <i class="fab fa-shopee text-orange-500"></i>
-                            <span>Shopee Store</span>
+                            <i class="fab fa-stripe-s text-orange-500"></i>
+                            <span>MINIFUN - hobby corner</span>
                         </li>
                         <li class="flex items-center gap-3 text-gray-400 text-sm">
                             <i class="fab fa-instagram text-pink-500"></i>
-                            <span>@minifun.diecast</span>
+                            <span>@minifun.id</span>
+                        </li>
+                        <li class="flex items-center gap-3 text-gray-400 text-sm">
+                            <i class="fab fa-tiktok text-white-500"></i>
+                            <span>@minifun.id</span>
                         </li>
                     </ul>
                 </div>
@@ -101,14 +105,17 @@
             <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p class="text-gray-500 text-xs">&copy; {{ date('Y') }} MINIFUN. All rights reserved.</p>
                 <div class="flex items-center gap-4">
-                    <a href="#" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-amber-500 flex items-center justify-center text-gray-400 hover:text-black transition-all duration-300">
+                    <a href="https://www.instagram.com/minifun.id" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-amber-500 flex items-center justify-center text-gray-400 hover:text-black transition-all duration-300">
                         <i class="fab fa-instagram text-sm"></i>
                     </a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-green-500 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300">
+                    <a href="https://wa.me/+6281234567890" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-green-500 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300">
                         <i class="fab fa-whatsapp text-sm"></i>
                     </a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-orange-500 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300">
+                    <a href="https://shopee.co.id/minifun_" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-orange-500 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300">
                         <i class="fas fa-store text-sm"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@minifun.id" class="w-9 h-9 rounded-full bg-gray-800 hover:bg-blue-500 flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300">
+                        <i class="fab fa-tiktok text-sm"></i>
                     </a>
                 </div>
             </div>

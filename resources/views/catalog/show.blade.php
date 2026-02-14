@@ -89,11 +89,11 @@
                 </a>
 
                 {{-- Name --}}
-                <h1 class="mt-4 text-3xl sm:text-4xl font-black text-black tracking-tight leading-tight">{{ $product->name }}</h1>
+                <h1 class="mt-4 text-3xl sm:text-4xl font-semibold text-black tracking-tight leading-tight">{{ $product->name }}</h1>
 
                 {{-- Price --}}
                 <div class="mt-4 flex items-center gap-3">
-                    <span class="text-3xl sm:text-4xl font-black text-black">{{ $product->formatted_price }}</span>
+                    <span class="text-3xl sm:text-4xl font-extrabold text-black">{{ $product->formatted_price }}</span>
                 </div>
 
                 {{-- Divider --}}
@@ -102,7 +102,7 @@
                 {{-- Description --}}
                 <div>
                     <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Description</h3>
-                    <p class="text-gray-600 leading-relaxed">{{ $product->description ?: 'No description available.' }}</p>
+                    <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ $product->description ?: 'No description available.' }}</p>
                 </div>
 
                 {{-- Specs --}}

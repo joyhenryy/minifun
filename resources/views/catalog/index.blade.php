@@ -107,7 +107,7 @@
                         @endif
 
                         @if($product->is_featured)
-                            <div class="absolute top-3 left-3 z-20 px-2.5 py-1 bg-amber-500 text-black text-xs font-bold rounded-lg">
+                            <div class="absolute top-3 left-3 z-20 px-2.5 py-1 bg-white text-yellow-500 shadow-lg text-xs font-bold rounded-lg">
                                 <i class="fas fa-star mr-1"></i> Featured
                             </div>
                         @endif
@@ -119,7 +119,7 @@
                         <h3 class="font-bold text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-2">{{ $product->name }}</h3>
                         <p class="mt-1.5 text-xs text-gray-400 line-clamp-2">{{ $product->description }}</p>
                         <div class="mt-3 flex items-center justify-between">
-                            <span class="text-lg font-black text-black">{{ $product->formatted_price }}</span>
+                            <span class="text-lg font-extrabold text-black">{{ $product->formatted_price }}</span>
                             <span class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 group-hover:bg-amber-500 group-hover:text-black text-gray-400 transition-all duration-300 text-xs">
                                 <i class="fas fa-arrow-right"></i>
                             </span>

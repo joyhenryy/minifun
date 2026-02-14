@@ -47,17 +47,17 @@
             {{-- Stats --}}
             <div class="mt-16 flex items-center gap-8 sm:gap-12">
                 <div>
-                    <div class="text-3xl font-black text-white">500<span class="text-amber-500">+</span></div>
+                    <div class="text-3xl font-black text-white">20<span class="text-amber-500">+</span></div>
                     <div class="text-xs text-gray-500 font-medium mt-1 uppercase tracking-wide">Products</div>
                 </div>
                 <div class="w-px h-12 bg-gray-800"></div>
                 <div>
-                    <div class="text-3xl font-black text-white">50<span class="text-amber-500">+</span></div>
+                    <div class="text-3xl font-black text-white">10<span class="text-amber-500">+</span></div>
                     <div class="text-xs text-gray-500 font-medium mt-1 uppercase tracking-wide">Brands</div>
                 </div>
                 <div class="w-px h-12 bg-gray-800"></div>
                 <div>
-                    <div class="text-3xl font-black text-white">10K<span class="text-amber-500">+</span></div>
+                    <div class="text-3xl font-black text-white">500<span class="text-amber-500">+</span></div>
                     <div class="text-xs text-gray-500 font-medium mt-1 uppercase tracking-wide">Happy Collectors</div>
                 </div>
             </div>
@@ -118,7 +118,7 @@
                         @endif
 
                         @if($product->is_featured)
-                            <div class="absolute top-3 left-3 z-20 px-2.5 py-1 bg-amber-500 text-black text-xs font-bold rounded-lg">
+                            <div class="absolute top-3 left-3 z-20 px-2.5 py-1 bg-white shadow-lg text-yellow-500 text-xs font-bold rounded-lg">
                                 <i class="fas fa-star mr-1"></i> Featured
                             </div>
                         @endif
@@ -129,7 +129,7 @@
                         <div class="text-xs font-medium text-amber-600 mb-1">{{ $product->category->name ?? 'Uncategorized' }}</div>
                         <h3 class="font-bold text-gray-900 group-hover:text-amber-600 transition-colors line-clamp-2">{{ $product->name }}</h3>
                         <div class="mt-3 flex items-center justify-between">
-                            <span class="text-lg font-black text-black">{{ $product->formatted_price }}</span>
+                            <span class="text-lg font-extrabold text-black">{{ $product->formatted_price }}</span>
                             <span class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 group-hover:bg-amber-500 group-hover:text-black text-gray-400 transition-all duration-300 text-xs">
                                 <i class="fas fa-arrow-right"></i>
                             </span>
@@ -159,7 +159,7 @@
 
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             @php
-                $icons = ['fas fa-car-side', 'fas fa-truck', 'fas fa-motorcycle', 'fas fa-cog', 'fas fa-crown'];
+                $icons = ['fas fa-car-side', 'fa-solid fa-clone', 'fa-solid fa-box-open', 'fas fa-cog', 'fas fa-crown'];
                 $colors = ['from-red-500 to-orange-500', 'from-blue-500 to-cyan-500', 'from-green-500 to-emerald-500', 'from-purple-500 to-pink-500', 'from-amber-500 to-yellow-500'];
             @endphp
             @foreach($categories as $index => $category)

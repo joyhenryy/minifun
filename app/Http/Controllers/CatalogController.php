@@ -22,7 +22,7 @@ class CatalogController extends Controller
             $query->where('name', 'like', '%' . $request->search . '%');
         }
 
-        $products = $query->latest()->paginate(12)->withQueryString();
+        $products = $query->orderBy('is_featured', 'desc')->oldest()->paginate(12)->withQueryString();
         $categories = Category::withCount('products')->get();
 
         return view('catalog.index', compact('products', 'categories'));
