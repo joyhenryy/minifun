@@ -36,7 +36,7 @@
                                 <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-12 h-12 rounded-xl object-cover bg-gray-100 border border-gray-100">
                                 <div>
                                     <div class="font-semibold text-gray-900">{{ $product->name }}</div>
-                                    <div class="text-xs text-gray-400 mt-0.5">{{ Str::limit($product->description, 40) }}</div>
+                                    {{-- <div class="text-xs text-gray-400 mt-0.5">{{ Str::limit($product->description, 40) }}</div> --}}
                                 </div>
                             </div>
                         </td>

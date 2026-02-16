@@ -91,7 +91,7 @@ class Product extends Model
     public function getWhatsappUrlAttribute(): string
     {
         $phone = env('WHATSAPP_NUMBER', '6281234567890');
-        $message = "Hi, I'm interested in *{$this->name}* (Rp " . number_format($this->price, 0, ',', '.') . "). Is it still available?";
+        $message = "Halo, saya tertarik dengan produk *{$this->name}* (Rp " . number_format($this->price, 0, ',', '.') . "). Apakah masih tersedia?";
         return 'https://wa.me/' . $phone . '?text=' . urlencode($message);
     }
 

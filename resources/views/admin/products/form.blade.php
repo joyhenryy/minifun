@@ -55,7 +55,7 @@
             {{-- Description --}}
             <div>
                 <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Description</label>
-                <textarea name="description" rows="4" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none text-sm transition-all duration-300 resize-none" placeholder="Describe your product...">{{ old('description', $product->description ?? '') }}</textarea>
+                <textarea name="description" rows="9" class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none text-sm transition-all duration-300 resize-y" placeholder="Describe your product...">{{ old('description', $product->description ?? '') }}</textarea>
             </div>
 
             {{-- Main Image Upload --}}
@@ -125,8 +125,8 @@
                 </div>
                 
                 <div class="bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
-                    {{-- Header --}}
-                    <div class="grid grid-cols-12 gap-4 px-4 py-2 bg-gray-100 border-b border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                    {{-- Desktop Header (hidden on mobile) --}}
+                    <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-2 bg-gray-100 border-b border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                         <div class="col-span-3">Type</div>
                         <div class="col-span-3">Name</div>
                         <div class="col-span-2">Price Diff (Rp)</div>
@@ -137,30 +137,48 @@
                     <div id="variants-container" class="divide-y divide-gray-200">
                         @if(isset($product) && $product->variants->count() > 0)
                             @foreach($product->variants as $index => $variant)
-                                <div class="grid grid-cols-12 gap-4 px-4 py-3 items-center group hover:bg-white transition-colors">
+                                <div class="variant-row px-4 py-4 md:py-3 group hover:bg-white transition-colors">
                                     <input type="hidden" name="variants[{{ $index }}][id]" value="{{ $variant->id }}">
-                                    <div class="col-span-3">
-                                        <input type="text" name="variants[{{ $index }}][type]" value="{{ $variant->type }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Warna">
-                                    </div>
-                                    <div class="col-span-3">
-                                        <input type="text" name="variants[{{ $index }}][name]" value="{{ $variant->name }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Merah">
-                                    </div>
-                                    <div class="col-span-2">
-                                        <input type="number" name="variants[{{ $index }}][price_adjustment]" value="{{ $variant->price_adjustment }}" step="100" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="0">
-                                    </div>
-                                    <div class="col-span-3">
-                                        @if($variant->image_path)
-                                            <div class="flex items-center gap-2 mb-2">
-                                                <img src="{{ $variant->image_url }}" alt="Variant" class="w-8 h-8 rounded object-cover border border-gray-200">
-                                                <span class="text-[10px] text-gray-400">Current</span>
-                                            </div>
-                                        @endif
-                                        <input type="file" name="variants[{{ $index }}][image]" accept="image/jpeg,image/png,image/jpg" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
-                                    </div>
-                                    <div class="col-span-1 text-center">
-                                        <button type="button" class="text-gray-400 hover:text-red-500 transition-colors p-2" onclick="removeVariant(this)">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
+
+                                    {{-- Responsive Container: Stacked on Mobile, Grid on Desktop --}}
+                                    <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                                        
+                                        {{-- Type --}}
+                                        <div class="md:col-span-3">
+                                            <label class="block md:hidden text-[10px] font-semibold text-gray-400 uppercase mb-1">Type</label>
+                                            <input type="text" name="variants[{{ $index }}][type]" value="{{ $variant->type }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Warna">
+                                        </div>
+
+                                        {{-- Name --}}
+                                        <div class="md:col-span-3">
+                                            <label class="block md:hidden text-[10px] font-semibold text-gray-400 uppercase mb-1">Name</label>
+                                            <input type="text" name="variants[{{ $index }}][name]" value="{{ $variant->name }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Merah">
+                                        </div>
+
+                                        {{-- Price Diff --}}
+                                        <div class="md:col-span-2">
+                                            <label class="block md:hidden text-[10px] font-semibold text-gray-400 uppercase mb-1">Price Diff (Rp)</label>
+                                            <input type="number" name="variants[{{ $index }}][price_adjustment]" value="{{ $variant->price_adjustment }}" step="100" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="0">
+                                        </div>
+
+                                        {{-- Image --}}
+                                        <div class="md:col-span-3">
+                                            <label class="block md:hidden text-[10px] font-semibold text-gray-400 uppercase mb-1">Image</label>
+                                            @if($variant->image_path)
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <img src="{{ $variant->image_url }}" alt="Variant" class="w-8 h-8 rounded object-cover border border-gray-200">
+                                                    <span class="text-[10px] text-gray-400">Current</span>
+                                                </div>
+                                            @endif
+                                            <input type="file" name="variants[{{ $index }}][image]" accept="image/jpeg,image/png,image/jpg" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                                        </div>
+
+                                        {{-- Action --}}
+                                        <div class="md:col-span-1 text-center flex md:block justify-end">
+                                            <button type="button" class="text-gray-400 hover:text-red-500 transition-colors p-2" onclick="removeVariant(this)">
+                                                <i class="fas fa-trash-alt"></i> <span class="md:hidden text-xs ml-1">Remove</span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
@@ -202,24 +220,39 @@
                     }
 
                     const div = document.createElement('div');
-                    div.className = 'grid grid-cols-12 gap-4 px-4 py-3 items-center group hover:bg-white transition-colors border-t border-gray-200';
+                    div.className = 'variant-row px-4 py-4 md:py-3 group hover:bg-white transition-colors border-t border-gray-200';
                     div.innerHTML = `
-                        <div class="col-span-3">
-                            <input type="text" name="variants[${variantIndex}][type]" value="Warna" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Warna">
-                        </div>
-                        <div class="col-span-3">
-                            <input type="text" name="variants[${variantIndex}][name]" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Merah">
-                        </div>
-                        <div class="col-span-2">
-                            <input type="number" name="variants[${variantIndex}][price_adjustment]" value="0" step="100" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="0">
-                        </div>
-                        <div class="col-span-3">
-                            <input type="file" name="variants[${variantIndex}][image]" accept="image/jpeg,image/png,image/jpg" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
-                        </div>
-                        <div class="col-span-1 text-center">
-                            <button type="button" class="text-gray-400 hover:text-red-500 transition-colors p-2" onclick="removeVariant(this)">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                            {{-- Type --}}
+                            <div class="md:col-span-3">
+                                <label class="block md:hidden text-[10px] font-semibold text-gray-400 uppercase mb-1">Type</label>
+                                <input type="text" name="variants[${variantIndex}][type]" value="Warna" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Warna">
+                            </div>
+
+                            {{-- Name --}}
+                            <div class="md:col-span-3">
+                                <label class="block md:hidden text-[10px] font-semibold text-gray-400 uppercase mb-1">Name</label>
+                                <input type="text" name="variants[${variantIndex}][name]" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="e.g. Merah">
+                            </div>
+
+                            {{-- Price Diff --}}
+                            <div class="md:col-span-2">
+                                <label class="block md:hidden text-[10px] font-semibold text-gray-400 uppercase mb-1">Price Diff (Rp)</label>
+                                <input type="number" name="variants[${variantIndex}][price_adjustment]" value="0" step="100" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none" placeholder="0">
+                            </div>
+
+                            {{-- Image --}}
+                            <div class="md:col-span-3">
+                                <label class="block md:hidden text-[10px] font-semibold text-gray-400 uppercase mb-1">Image</label>
+                                <input type="file" name="variants[${variantIndex}][image]" accept="image/jpeg,image/png,image/jpg" class="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2 file:rounded-lg file:border-0 file:text-[10px] file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                            </div>
+
+                            {{-- Action --}}
+                            <div class="md:col-span-1 text-center flex md:block justify-end">
+                                <button type="button" class="text-gray-400 hover:text-red-500 transition-colors p-2" onclick="removeVariant(this)">
+                                    <i class="fas fa-trash-alt"></i> <span class="md:hidden text-xs ml-1">Remove</span>
+                                </button>
+                            </div>
                         </div>
                     `;
                     container.appendChild(div);
@@ -227,7 +260,7 @@
                 }
 
                 function removeVariant(btn) {
-                    btn.closest('.grid').remove();
+                    btn.closest('.variant-row').remove();
                 }
             </script>
 

@@ -51,14 +51,14 @@
                         </button>
 
                         {{-- Image Counter --}}
-                        <div class="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-xl bg-black/40 backdrop-blur-sm text-white text-xs font-semibold">
+                        <div class="absolute right-4 top-4 z-20 px-3 py-1.5 rounded-xl bg-black/40 backdrop-blur-sm text-white text-xs font-semibold">
                             <i class="fas fa-images mr-1"></i>
                             <span id="gallery-counter">1</span>/{{ count($imageUrls) }}
                         </div>
                     @endif
 
                     @if($product->is_featured)
-                        <div class="absolute top-4 left-4 z-20 px-3 py-1.5 bg-amber-500 text-black text-xs font-bold rounded-xl shadow-lg shadow-amber-500/25">
+                        <div class="absolute top-4 left-4 z-20 px-3 py-1.5 bg-yellow-500/80 backdrop-blur-sm text-white text-xs font-bold rounded-xl shadow-lg shadow-amber-500/25">
                             <i class="fas fa-star mr-1"></i> Featured
                         </div>
                     @endif
@@ -100,9 +100,17 @@
                 <div class="my-6 border-t border-gray-100"></div>
 
                 {{-- Description --}}
-                <div>
+                {{-- Description --}}
+                <div class="relative">
                     <h3 class="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">Description</h3>
-                    <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ $product->description ?: 'No description available.' }}</p>
+                    <div id="description-container" class="relative overflow-hidden transition-all duration-500 max-h-[120px]">
+                        <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ $product->description ?: 'No description available.' }}</p>
+                        <div id="description-overlay" class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-white to-transparent"></div>
+                    </div>
+                    <button id="toggle-description-btn" class="mt-2 text-sm font-semibold text-amber-600 hover:text-amber-700 flex items-center gap-1 transition-colors hidden" onclick="toggleDescription()">
+                        <span>View More</span>
+                        <i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>
+                    </button>
                 </div>
 
                 {{-- Specs --}}
@@ -148,7 +156,7 @@
 
                                                 {{-- Text Info --}}
                                                 <div class="flex flex-col items-start {{ !$variant->image_path ? 'w-full text-center items-center' : '' }}">
-                                                    <span class="text-xs font-bold text-gray-900 group-hover:text-amber-600 uppercase">{{ $variant->name }}</span>
+                                                    <span class="text-xs font-bold text-gray-900 group-hover:text-amber-600">{{ $variant->name }}</span>
                                                     @if($variant->price_adjustment != 0)
                                                         <span class="text-[10px] font-medium {{ $variant->price_adjustment > 0 ? 'text-green-600' : 'text-red-500' }}">
                                                             {{ $variant->price_adjustment > 0 ? '+' : '' }}Rp{{ number_format($variant->price_adjustment / 1000, 0) }}k
@@ -476,6 +484,47 @@
             if (Math.abs(diff) > 50) galleryNav(diff > 0 ? 1 : -1);
         }, { passive: true });
     }
+    // ── Description Toggle ─────────────────────────────
+    function initDescriptionToggle() {
+        const container = document.getElementById('description-container');
+        const btn = document.getElementById('toggle-description-btn');
+        const overlay = document.getElementById('description-overlay');
+        
+        if (!container || !btn) return;
+
+        // Check if content overflows
+        if (container.scrollHeight > container.clientHeight) {
+            btn.classList.remove('hidden');
+        } else {
+            overlay.classList.add('hidden');
+            container.classList.remove('max-h-[120px]'); 
+        }
+    }
+
+    function toggleDescription() {
+        const container = document.getElementById('description-container');
+        const overlay = document.getElementById('description-overlay');
+        const btn = document.getElementById('toggle-description-btn');
+        const span = btn.querySelector('span');
+        const icon = btn.querySelector('i');
+
+        if (container.classList.contains('max-h-[120px]')) {
+            // Expand
+            container.classList.remove('max-h-[120px]');
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            span.textContent = 'View Less';
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            // Collapse
+            container.classList.add('max-h-[120px]');
+            overlay.classList.remove('opacity-0', 'pointer-events-none');
+            span.textContent = 'View More';
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+
+    // Initialize on load to ensure accurate height calculation
+    window.addEventListener('load', initDescriptionToggle);
 </script>
 
 <script>

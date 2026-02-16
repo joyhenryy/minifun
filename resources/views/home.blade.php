@@ -118,7 +118,7 @@
                         @endif
 
                         @if($product->is_featured)
-                            <div class="absolute top-3 left-3 z-20 px-2.5 py-1 bg-white shadow-lg text-yellow-500 text-xs font-bold rounded-lg">
+                            <div class="absolute top-4 left-4 z-20 px-3 py-1.5 bg-yellow-500/80 backdrop-blur-sm text-white text-xs font-bold rounded-xl shadow-lg shadow-amber-500/25">
                                 <i class="fas fa-star mr-1"></i> Featured
                             </div>
                         @endif
