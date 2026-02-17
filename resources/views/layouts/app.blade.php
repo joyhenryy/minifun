@@ -18,11 +18,8 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16 lg:h-20">
                 {{-- Logo --}}
-                <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-                    <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                        <span class="text-white font-black text-lg">M</span>
-                    </div>
-                    <span class="text-xl font-bold tracking-tight text-black">MINI<span class="text-amber-500">FUN</span></span>
+                <a href="{{ route('home') }}" class="flex items-center group">
+                    <img src="{{ asset('images/logo.png') }}" alt="MINIFUN" class="h-14 w-auto group-hover:scale-105 transition-transform duration-300">
                 </a>
 
                 {{-- Desktop Nav --}}
@@ -60,11 +57,8 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
                 {{-- Brand --}}
                 <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-                            <span class="text-black font-black text-lg">M</span>
-                        </div>
-                        <span class="text-xl font-bold tracking-tight">MINI<span class="text-amber-500">FUN</span></span>
+                    <div class="mb-4">
+                        <img src="{{ asset('images/logo.png') }}" alt="MINIFUN" class="h-14 w-auto">
                     </div>
                     <p class="text-gray-400 text-sm leading-relaxed">Your premium destination for high-quality diecast collectibles. From Hot Wheels to Tomica, we curate the finest miniature vehicles.</p>
                 </div>

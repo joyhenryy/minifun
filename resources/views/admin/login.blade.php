@@ -20,10 +20,7 @@
     <div class="relative w-full max-w-md mx-4">
         {{-- Logo --}}
         <div class="text-center mb-10">
-            <div class="w-16 h-16 mx-auto bg-amber-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-amber-500/20">
-                <span class="text-black font-black text-2xl">M</span>
-            </div>
-            <h1 class="text-2xl font-bold tracking-tight">MINI<span class="text-amber-500">FUN</span></h1>
+            <img src="{{ asset('images/logo.png') }}" alt="MINIFUN" class="h-20 w-auto mx-auto mb-4">
             <p class="text-gray-500 text-sm mt-1">Administration Portal</p>
         </div>
 

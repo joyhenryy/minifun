@@ -34,6 +34,7 @@
                     @foreach($imageUrls as $index => $url)
                         <img
                             src="{{ $url }}"
+                            data-original-src="{{ $url }}"
                             alt="{{ $product->name }} - Image {{ $index + 1 }}"
                             class="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out cursor-zoom-in {{ $index === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0' }}"
                             data-gallery-index="{{ $index }}"
@@ -309,12 +310,12 @@
     let currentGalleryIndex = 0;
     const totalGalleryImages = {{ count($imageUrls) }};
 
-    function galleryGoTo(index) {
+    function galleryGoTo(index, fromVariant = false) {
         if (index < 0) index = totalGalleryImages - 1;
         if (index >= totalGalleryImages) index = 0;
         currentGalleryIndex = index;
 
-        // Update main images
+        // Update main images (fade in/out)
         document.querySelectorAll('[data-gallery-index]').forEach((img, i) => {
             if (i === index) {
                 img.classList.remove('opacity-0', 'z-0');
@@ -324,6 +325,32 @@
                 img.classList.add('opacity-0', 'z-0');
             }
         });
+
+        // Restore original image with crossfade if navigating back to index 0
+        const mainImg = document.querySelector('img[data-gallery-index="0"]');
+        if (mainImg && !fromVariant && mainImg.dataset.originalSrc) {
+            if (mainImg.src !== mainImg.dataset.originalSrc) {
+                if (index === 0) {
+                    // Preload original first, then crossfade
+                    const temp = new Image();
+                    temp.src = mainImg.dataset.originalSrc;
+                    temp.onload = () => {
+                        mainImg.style.transition = 'opacity 150ms ease';
+                        mainImg.style.opacity = '0';
+                        setTimeout(() => {
+                            mainImg.src = mainImg.dataset.originalSrc;
+                            mainImg.style.opacity = '1';
+                            setTimeout(() => { mainImg.style.transition = ''; mainImg.style.opacity = ''; }, 150);
+                        }, 150);
+                    };
+                } else {
+                    // Not viewing index 0, just silently restore after fade-out
+                    setTimeout(() => {
+                        mainImg.src = mainImg.dataset.originalSrc;
+                    }, 500);
+                }
+            }
+        }
 
         // Update thumbnails
         document.querySelectorAll('[data-thumb-index]').forEach((thumb, i) => {
@@ -557,20 +584,53 @@
             const check = btn.querySelector('.active-check');
             if(check) check.classList.remove('hidden');
 
-            // Update Main Image if variant has one
+            // Update Main Image logic
             const imageUrl = btn.dataset.image;
-            if (imageUrl) {
-                // We'll update the first image in the gallery
-                const mainImg = document.querySelector('img[data-gallery-index="0"]');
-                if (mainImg) {
-                    // Preload first to avoid flicker
-                    const temp = new Image();
-                    temp.src = imageUrl;
-                    temp.onload = () => {
-                        mainImg.src = imageUrl;
-                        galleryGoTo(0); // Ensure first image is shown
+            const mainImg = document.querySelector('img[data-gallery-index="0"]');
+
+            if (imageUrl && mainImg) {
+                // Pass true to galleryGoTo to indicate this comes from variant selection 
+                // so it shouldn't revert the image immediately
+                galleryGoTo(0, true);
+
+                // Auto-scroll to gallery so user can see the variant image
+                const galleryEl = document.getElementById('product-gallery');
+                if (galleryEl) {
+                    const targetY = galleryEl.getBoundingClientRect().top + window.pageYOffset - 20;
+                    const startY = window.pageYOffset;
+                    const diff = targetY - startY;
+                    const duration = 800; // ms — adjust for slower/faster
+                    let startTime = null;
+
+                    function easeInOutCubic(t) {
+                        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
                     }
+
+                    function animateScroll(currentTime) {
+                        if (!startTime) startTime = currentTime;
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        window.scrollTo(0, startY + diff * easeInOutCubic(progress));
+                        if (progress < 1) requestAnimationFrame(animateScroll);
+                    }
+
+                    requestAnimationFrame(animateScroll);
                 }
+                
+                const temp = new Image();
+                temp.src = imageUrl;
+                temp.onload = () => {
+                    mainImg.src = imageUrl;
+                }
+            } else if (mainImg && mainImg.dataset.originalSrc) {
+                // Active but no image, revert to original
+                mainImg.src = mainImg.dataset.originalSrc;
+            }
+        } else {
+            // Deselecting: Restore original image
+            const mainImg = document.querySelector('img[data-gallery-index="0"]');
+            if (mainImg && mainImg.dataset.originalSrc) {
+                mainImg.src = mainImg.dataset.originalSrc;
             }
         } 
         

@@ -17,14 +17,9 @@
         <aside id="admin-sidebar" class="fixed inset-y-0 left-0 z-40 w-64 bg-black text-white transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
             <div class="flex flex-col h-full">
                 {{-- Brand --}}
-                <div class="flex items-center gap-3 px-6 py-6 border-b border-gray-800">
-                    <div class="w-9 h-9 bg-amber-500 rounded-lg flex items-center justify-center">
-                        <span class="text-black font-black text-sm">M</span>
-                    </div>
-                    <div>
-                        <span class="font-bold text-sm tracking-tight">MINI<span class="text-amber-500">FUN</span></span>
-                        <p class="text-xs text-gray-500">Admin Panel</p>
-                    </div>
+                <div class="flex flex-col items-center px-6 py-5 border-b border-gray-800">
+                    <img src="{{ asset('images/logo.png') }}" alt="MINIFUN" class="h-12 w-auto">
+                    <p class="text-xs text-gray-500 mt-1">Admin Panel</p>
                 </div>
 
                 {{-- Nav Links --}}
